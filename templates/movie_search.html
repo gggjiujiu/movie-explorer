@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <h2>Search Movies</h2>
+
+  <form class="search-bar" action="{{ url_for('movie_search') }}" method="get">
+    <input
+      type="text"
+      name="q"
+      placeholder="Search by title..."
+      value="{{ q or '' }}"
+      required
+    >
+    <input
+      type="text"
+      name="year"
+      placeholder="Year"
+      value="{{ year or '' }}"
+      style="max-width: 80px;"
+    >
+    <button type="submit">🔍</button>
+  </form>
+
+  <!-- Filter buttons (UI only for now) -->
+  <div class="filters">
+    <button type="button">Genre</button>
+    <button type="button">Year</button>
+    <button type="button">Rating</button>
+  </div>
+
+  {% if q %}
+    <p class="small">
+      Showing results for <strong>{{ q }}</strong>
+      {% if year %} ({{ year }}){% endif %}
+    </p>
+  {% else %}
+    <p class="small">
+      Type a movie title (e.g. <em>Inception</em>, <em>Batman</em>) and press search.
+    </p>
+  {% endif %}
+
+  {% if movies %}
+    <div class="movie-grid">
+      {% for m in movies %}
+        <a class="movie-card" href="{{ url_for('movie_detail', movie_id=m.id) }}">
+          {% if m.poster_url %}
+            <img src="{{ m.poster_url }}" alt="{{ m.title }} poster">
+          {% else %}
+            <div class="placeholder">No image</div>
+          {% endif %}
+          <div class="info">
+            <h3>{{ m.title }}</h3>
+            <p class="meta">
+              ⭐ {{ "%.1f"|format(m.rating or 0) }}
+              {% if m.vote_count %} ({{ m.vote_count }} votes){% endif %}
+            </p>
+            <p class="meta">
+              {{ m.release_year }}
+            </p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% elif q %}
+    <p>No results found.</p>
+  {% endif %}
+
+{% endblock %}

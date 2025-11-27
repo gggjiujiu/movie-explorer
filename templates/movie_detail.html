@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <a href="{{ url_for('movie_search') }}">&larr; Back to search</a>
+
+  <h2>{{ movie.title }}</h2>
+
+  <div class="movie-detail-layout">
+    <div class="poster">
+      {% if movie.poster_url %}
+        <img src="{{ movie.poster_url }}" alt="{{ movie.title }} poster">
+      {% else %}
+        <div class="placeholder">No image</div>
+      {% endif %}
+    </div>
+    <div class="info">
+      <p>
+        <strong>Rating:</strong>
+        ⭐ {{ "%.1f"|format(movie.rating or 0) }}
+        {% if movie.vote_count %} ({{ movie.vote_count }} votes){% endif %}
+      </p>
+      <p><strong>Year:</strong> {{ movie.release_year }}</p>
+      {% if movie.genres %}
+        <p><strong>Genres:</strong> {{ movie.genres | join(", ") }}</p>
+      {% endif %}
+      {% if movie.runtime %}
+        <p><strong>Runtime:</strong> {{ movie.runtime }} min</p>
+      {% endif %}
+      <p><strong>Description:</strong></p>
+      <p>{{ movie.overview }}</p>
+    </div>
+  </div>
+
+{% endblock %}
