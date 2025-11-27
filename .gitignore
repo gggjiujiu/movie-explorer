@@ -4,6 +4,6 @@
 venv
 __pycache__
 *.pyc
-
+.venv
 # Local editor configuration files
 .idea
