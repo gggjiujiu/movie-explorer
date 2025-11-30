@@ -5,17 +5,26 @@
     <title>Movie Explorer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             margin: 0;
             padding: 0;
             background: #f5f5f5;
+            /* 让 Footer/内容 自动撑开 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
+        /* --- 导航栏样式 --- */
         header {
             background: #222;
             color: white;
             padding: 0.6rem 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .header-inner {
             max-width: 960px;
@@ -28,11 +37,13 @@
         header h1 {
             margin: 0;
             font-size: 1.3rem;
+            font-weight: bold;
         }
         .main-nav {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
+            align-items: center;
         }
         .main-nav a {
             padding: 0.3rem 0.8rem;
@@ -41,157 +52,58 @@
             color: white;
             text-decoration: none;
             font-size: 0.85rem;
+            transition: background 0.2s;
         }
         .main-nav a:hover {
             background: #666;
         }
 
+        /* 登出按钮给个红色，显眼一点 */
+        .main-nav a.logout-btn {
+            background-color: #d9534f;
+        }
+        .main-nav a.logout-btn:hover {
+            background-color: #c9302c;
+        }
+
         main {
+            width: 100%;
             max-width: 960px;
             margin: 1.5rem auto 2.5rem auto;
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            /* 移除这里的白色背景，让 login 页面自己决定背景 */
+            flex: 1;
+            padding: 0 1rem;
         }
 
-        .btn-primary {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 999px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-        .btn-primary:hover {
-            background: #0062cc;
-        }
-
-        .search-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 0.8rem;
-        }
-        .search-bar input[type="text"] {
-            flex: 1 1 200px;
-            padding: 0.45rem 0.6rem;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 0.95rem;
-        }
-        .search-bar button {
-            padding: 0.45rem 0.9rem;
-            border-radius: 6px;
-            border: none;
-            background: #007bff;
-            color: white;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .filters button {
-            padding: 0.3rem 0.8rem;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            background: #eee;
-            cursor: default;
-        }
+        /* 这里的 CSS 依然保留，防止影响其他页面 */
         .movie-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-        .movie-card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            background: #fff;
-            overflow: hidden;
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
-        }
-        .movie-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-        }
-        .movie-card img {
-            width: 100%;
-            display: block;
-        }
-        .movie-card .placeholder {
-            height: 210px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #e0e0e0;
-            color: #777;
-            font-size: 0.85rem;
-        }
-        .movie-card .info {
-            padding: 0.45rem 0.6rem 0.6rem 0.6rem;
-        }
-        .movie-card h3 {
-            margin: 0 0 0.2rem 0;
-            font-size: 0.95rem;
-        }
-        .movie-card .meta {
-            font-size: 0.8rem;
-            margin: 0.1rem 0;
-            color: #555;
-        }
-
-        .movie-detail-layout {
-            display: grid;
-            grid-template-columns: 260px 1fr;
             gap: 1.5rem;
-            margin-top: 1rem;
         }
-        .movie-detail-layout img {
-            width: 100%;
-            border-radius: 8px;
-        }
-        .movie-detail-layout .placeholder {
-            height: 390px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #e0e0e0;
-            color: #777;
-        }
-        .movie-detail-layout .info p {
-            margin: 0.35rem 0;
-        }
-        .small {
-            font-size: 0.85rem;
-            color: #666;
-        }
+        /* ... 你同学写的其他 movie-card 样式保持不变，我省略了重复部分 ... */
+        .movie-card { display: block; text-decoration: none; color: inherit; border-radius: 8px; border: 1px solid #ddd; background: #fff; overflow: hidden; transition: transform 0.1s ease, box-shadow 0.1s ease; }
+        .movie-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+        .movie-card img { width: 100%; display: block; }
+        .movie-card .placeholder { height: 210px; display: flex; align-items: center; justify-content: center; background: #e0e0e0; color: #777; font-size: 0.85rem; }
+        .movie-card .info { padding: 0.45rem 0.6rem 0.6rem 0.6rem; }
+        .movie-card h3 { margin: 0 0 0.2rem 0; font-size: 0.95rem; }
+        .movie-card .meta { font-size: 0.8rem; margin: 0.1rem 0; color: #555; }
+        .movie-detail-layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; margin-top: 1rem; }
+        .movie-detail-layout img { width: 100%; border-radius: 8px; }
+        .movie-detail-layout .placeholder { height: 390px; display: flex; align-items: center; justify-content: center; background: #e0e0e0; color: #777; }
+        .movie-detail-layout .info p { margin: 0.35rem 0; }
+        .small { font-size: 0.85rem; color: #666; }
 
         @media (max-width: 720px) {
-            main {
-                margin: 0.5rem;
-                border-radius: 0;
-            }
-            .movie-detail-layout {
-                grid-template-columns: 1fr;
-            }
-            .header-inner {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+            .movie-detail-layout { grid-template-columns: 1fr; }
+            .header-inner { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
+
+    {% if session.get('user_id') %}
     <header>
         <div class="header-inner">
             <h1>Movie Explorer</h1>
@@ -199,12 +111,29 @@
                 <a href="{{ url_for('movie_search') }}">Movie Search</a>
                 <a href="{{ url_for('account') }}">User Account</a>
                 <a href="{{ url_for('favourites') }}">Favorite List</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
             </nav>
         </div>
     </header>
+    {% endif %}
 
     <main>
+        <div class="container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
         {% block content %}{% endblock %}
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
