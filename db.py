@@ -39,8 +39,8 @@ def is_favorite(user_id: int, movie_id: int) -> bool:
         )
         return session.execute(stmt).first() is not None
 
+# delete a movie from the favorite list
 def delete_favorite_movie(user_id: int, movie_id: int) -> int:
-    """Return number of rows deleted."""
     with Session(engine) as session:
         q = session.query(FavoriteMovieList).filter_by(
             user_id=user_id,
@@ -48,34 +48,20 @@ def delete_favorite_movie(user_id: int, movie_id: int) -> int:
         )
         rows_deleted = q.delete()
         session.commit()
-        return rows_deleted
 
-def toggle_favorite_movie(user_id: int, movie_id: int) -> bool:
-    """
-    Toggle favorite state.
-    Return True → added
-    Return False → removed
-    """
-    with Session(engine) as session:
-        stmt = select(FavoriteMovieList).where(
-            FavoriteMovieList.user_id == user_id,
-            FavoriteMovieList.movie_id == movie_id
-        )
-        entry = session.execute(stmt).first()
+        # Return number of rows deleted.
+        return rows_deleted 
 
-        # If exists → remove
-        if entry:
-            session.query(FavoriteMovieList).filter_by(
-                user_id=user_id,
-                movie_id=movie_id
-            ).delete()
+# add a movie to the favorite list
+def add_favorite_movie(user_id: int, movie_id: int):
+    try:
+        with Session(engine) as session:
+            session.add(FavoriteMovieList(user_id=user_id, movie_id=movie_id))
             session.commit()
-            return False  # removed
-
-        # If not exists → add
-        session.add(FavoriteMovieList(user_id=user_id, movie_id=movie_id))
-        session.commit()
-        return True  # added
+        return True   # success
+    except Exception as e:
+        print("Error adding favorite:", e)
+        return False  # failed
 
 # ======================== User Helpers ========================
 # get user data

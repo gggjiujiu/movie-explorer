@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-import psycopg2
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -9,9 +7,6 @@ from db import (
     update_user_email,
     update_user_password
 )
-from models.users import User
-
-load_dotenv(override=True)
 
 # Define Blueprint
 account_bp = Blueprint('account_bp', __name__)

@@ -1,13 +1,15 @@
 import os
 from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, render_template, request, abort
+
 from db import is_favorite
 from tmdb import TMDB_API_KEY, get_movie_details, search_movies
-
 from routes.favorites import favorites_bp
 from routes.account import account_bp
 
-load_dotenv()
+
 
 def create_app():
     app = Flask(__name__)

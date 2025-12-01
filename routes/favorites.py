@@ -1,11 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from models.favorite_movie_list import FavoriteMovieList
+
 from db import (
     get_favorite_movie_ids,
+    is_favorite,
     delete_favorite_movie,
-    toggle_favorite_movie
+    add_favorite_movie
 )
 from tmdb import get_movie_details
 
@@ -47,11 +46,22 @@ def delete_favorite(movie_id):
 def toggle_favorite(movie_id):
     user_id = get_current_user_id()
 
-    added = toggle_favorite_movie(user_id, movie_id)
+    # Case 1: already in favorites → remove it
+    if is_favorite(user_id, movie_id):
+        rows = delete_favorite_movie(user_id, movie_id)
+        if rows > 0:
+            flash("Removed from your favorite list!", "success")
+        else:
+            flash("Failed to remove movie.", "error")
 
-    if added:
+        return redirect(url_for("movie_detail", movie_id=movie_id))
+    
+    # Case 2: not in favorites → add it
+    success = add_favorite_movie(user_id, movie_id)
+
+    if success:
         flash("Added to your favorite list!", "success")
     else:
-        flash("Removed from your favorite list!", "success")
+        flash("Failed to add movie.", "error")
 
     return redirect(url_for("movie_detail", movie_id=movie_id))
