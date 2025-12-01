@@ -1,6 +1,17 @@
 import os
+
+# ---------- Iris ----------
+from dotenv import load_dotenv
+# -------------------------
+
 from flask import Flask, render_template, request, abort
 import requests
+
+# ---------- Iris ----------
+from routes_account import account_bp
+
+load_dotenv()
+# -------------------------
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
@@ -9,6 +20,11 @@ TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"  # poster image size
 
 def create_app():
     app = Flask(__name__)
+
+    # ---------- Iris ----------
+    app.secret_key = "my_super_secret_key_for_group_project_movie"
+    app.register_blueprint(account_bp)
+    # -------------------------
 
     # 1. Login
     @app.route("/", methods=["GET"])
@@ -44,10 +60,12 @@ def create_app():
         movie = get_movie_details(movie_id)
         return render_template("movie_detail.html", movie=movie)
 
+    ''' ---------- Iris Delete ----------
     # 4. user account
     @app.route("/account", methods=["GET"])
     def account():
         return render_template("account.html")
+    ''' 
 
     # 5. favourites list
     @app.route("/favourites", methods=["GET"])

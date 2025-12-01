@@ -7,3 +7,4 @@ __pycache__
 .venv
 # Local editor configuration files
 .idea
+.env
