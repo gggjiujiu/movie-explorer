@@ -1,7 +1,110 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-  <h2>User account</h2>
-  <p>User account</p>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
+
+<div class="account-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h2 class="page-title">Account Details</h2>
+
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="openTab(event, 'personal-details')">Personal Details</button>
+        <button class="tab-btn" onclick="openTab(event, 'change-password')">Change Password</button>
+    </div>
+
+    <div class="tab-content-area">
+        
+        <div id="personal-details" class="tab-pane active">
+            
+            <div class="profile-header">
+                <img src="https://ui-avatars.com/api/?name={{ user.fullname }}&background=6fb1f7&color=fff&size=128" 
+                     class="profile-avatar" alt="Avatar">
+                <h3 class="profile-name">{{ user.fullname }}</h3>
+            </div>
+
+            <form method="POST" action="{{ url_for('account_bp.account_page') }}">
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="info-row">
+                    <span class="info-label">FULL NAME</span>
+                    <span class="info-value">{{ user.fullname }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">ACCOUNT</span>
+                    <span class="info-value">{{ user.account }}</span>
+                </div>
+                
+                <div class="info-row no-border">
+                    <span class="info-label">EMAIL</span>
+                    
+                    <div class="email-edit-wrapper">
+                        <input type="email" name="email" value="{{ user.email }}" class="form-input email-input-limit">
+                        <button type="submit" class="submit-btn btn-small">Update</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="change-password" class="tab-pane">
+            <form method="POST" action="{{ url_for('account_bp.account_page') }}">
+
+                <input type="hidden" name="action" value="change_password">
+                
+                <div class="form-group">
+                    <label class="form-label">Current Password:</label>
+                    <input type="password" name="current_password" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">New Password:</label>
+                    <input type="password" name="new_password" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password:</label>
+                    <input type="password" name="confirm_password" class="form-input" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        // 1. Hide all tab contents
+        var tabContent = document.getElementsByClassName("tab-pane");
+        for (var i = 0; i < tabContent.length; i++) {
+            tabContent[i].style.display = "none";
+            tabContent[i].classList.remove("active");
+        }
+
+        // 2. Remove 'active' class from all tab buttons
+        var tabLinks = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < tabLinks.length; i++) {
+            tabLinks[i].classList.remove("active");
+        }
+
+        // 3. Show the current tab and mark the button as active
+        document.getElementById(tabName).style.display = "block";
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
 
 {% endblock %}

@@ -1,8 +1,13 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, abort
-from routes.favorites import favorites_bp
 from db import is_favorite
 from tmdb import TMDB_API_KEY, get_movie_details, search_movies
+
+from routes.favorites import favorites_bp
+from routes.account import account_bp
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
@@ -10,6 +15,7 @@ def create_app():
 
     # Register Blueprint
     app.register_blueprint(favorites_bp)
+    app.register_blueprint(account_bp)
 
     # 1. Login
     @app.route("/", methods=["GET"])
@@ -48,11 +54,6 @@ def create_app():
 
         return render_template("movie_detail.html", movie=movie, is_fav=fav_status)
 
-    # 4. user account
-    @app.route("/account", methods=["GET"])
-    def account():
-        return render_template("account.html")
-    
     return app
 
 

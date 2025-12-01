@@ -1,16 +1,23 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, session
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from models.favorite_movie_list import FavoriteMovieList
-from db import engine, get_favorite_movie_ids
+from db import (
+    get_favorite_movie_ids,
+    delete_favorite_movie,
+    toggle_favorite_movie
+)
 from tmdb import get_movie_details
 
 favorites_bp = Blueprint("favorites", __name__, url_prefix="/favorites")
 
+def get_current_user_id():
+    return session.get("user_id")
+
 # GET /favorites
 @favorites_bp.route("/", methods=["GET"])
 def favorites():
-    user_id = 8
+    user_id = get_current_user_id()
     movie_ids = get_favorite_movie_ids(user_id)
 
     favorite_movies = []
@@ -23,15 +30,9 @@ def favorites():
 # POST /favorites/delete/<movie_id>
 @favorites_bp.route("/delete/<int:movie_id>", methods=["POST"])
 def delete_favorite(movie_id):
-    user_id = 8
+    user_id = get_current_user_id()
 
-    with Session(engine) as session:
-        q = session.query(FavoriteMovieList).filter_by(
-            user_id=user_id, 
-            movie_id=movie_id
-        )
-        rows_deleted = q.delete()
-        session.commit()
+    rows_deleted = delete_favorite_movie(user_id, movie_id)
 
     if rows_deleted:
         flash("Movie removed from your favorite list!", "success")
@@ -44,27 +45,13 @@ def delete_favorite(movie_id):
 # POST /favorites/toggle/<movie_id>
 @favorites_bp.route("/toggle/<int:movie_id>", methods=["POST"])
 def toggle_favorite(movie_id):
-    user_id = 8
+    user_id = get_current_user_id()
 
-    with Session(engine) as session:
-        stmt = select(FavoriteMovieList).where(
-            FavoriteMovieList.user_id == user_id,
-            FavoriteMovieList.movie_id == movie_id
-        )
-        entry = session.execute(stmt).first()
+    added = toggle_favorite_movie(user_id, movie_id)
 
-        if entry:
-            # if the movie exists in the list, then remove it.
-            session.query(FavoriteMovieList).filter_by(
-                user_id=user_id,
-                movie_id=movie_id
-            ).delete()
-            session.commit()
-            flash("Removed from your favorite list!", "success")
-        else:
-            # if the movie not exists in the list, then add it.
-            session.add(FavoriteMovieList(user_id=user_id, movie_id=movie_id))
-            session.commit()
-            flash("Added to your favorite list!", "success")
+    if added:
+        flash("Added to your favorite list!", "success")
+    else:
+        flash("Removed from your favorite list!", "success")
 
     return redirect(url_for("movie_detail", movie_id=movie_id))

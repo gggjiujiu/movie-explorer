@@ -4,6 +4,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
 
 from models.favorite_movie_list import FavoriteMovieList
+from models.users import User
 
 # Create Postgres engine
 url = URL.create(
@@ -18,8 +19,8 @@ url = URL.create(
 
 engine = create_engine(url)
 
-
-# Helper：search for user's favorite movie list
+# ======================== Favorite List Helpers ========================
+# search for user's favorite movie list
 def get_favorite_movie_ids(user_id: int):
     with Session(engine) as session:
         stmt = select(FavoriteMovieList.movie_id).where(
@@ -29,7 +30,7 @@ def get_favorite_movie_ids(user_id: int):
         return result
 
 
-# Helper：check if this movie is in favorite list
+# check if this movie is in favorite list
 def is_favorite(user_id: int, movie_id: int) -> bool:
     with Session(engine) as session:
         stmt = select(FavoriteMovieList).where(
@@ -37,3 +38,72 @@ def is_favorite(user_id: int, movie_id: int) -> bool:
             FavoriteMovieList.movie_id == movie_id
         )
         return session.execute(stmt).first() is not None
+
+def delete_favorite_movie(user_id: int, movie_id: int) -> int:
+    """Return number of rows deleted."""
+    with Session(engine) as session:
+        q = session.query(FavoriteMovieList).filter_by(
+            user_id=user_id,
+            movie_id=movie_id
+        )
+        rows_deleted = q.delete()
+        session.commit()
+        return rows_deleted
+
+def toggle_favorite_movie(user_id: int, movie_id: int) -> bool:
+    """
+    Toggle favorite state.
+    Return True → added
+    Return False → removed
+    """
+    with Session(engine) as session:
+        stmt = select(FavoriteMovieList).where(
+            FavoriteMovieList.user_id == user_id,
+            FavoriteMovieList.movie_id == movie_id
+        )
+        entry = session.execute(stmt).first()
+
+        # If exists → remove
+        if entry:
+            session.query(FavoriteMovieList).filter_by(
+                user_id=user_id,
+                movie_id=movie_id
+            ).delete()
+            session.commit()
+            return False  # removed
+
+        # If not exists → add
+        session.add(FavoriteMovieList(user_id=user_id, movie_id=movie_id))
+        session.commit()
+        return True  # added
+
+# ======================== User Helpers ========================
+# get user data
+def get_user(user_id: int):
+    with Session(engine) as db:
+        stmt = select(User).where(User.id == user_id)
+        return db.execute(stmt).scalar_one_or_none()
+
+# check if email is already used.
+def email_exists(new_email, user_id):
+    with Session(engine) as db:
+        stmt = select(User).where(
+            User.email == new_email,
+            User.id != user_id
+        )
+        return db.execute(stmt).first() is not None
+
+# update email
+def update_user_email(user: User, new_email: str):
+    with Session(engine) as db:
+        user.email = new_email
+        db.merge(user)
+        db.commit()
+
+# update password
+def update_user_password(user: User, hashed_password: str):
+    with Session(engine) as db:
+        user.password = hashed_password
+        db.merge(user)
+        db.commit()
+
