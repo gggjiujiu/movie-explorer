@@ -1,14 +1,15 @@
 import os
 from flask import Flask, render_template, request, abort
-import requests
-
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")
-TMDB_BASE_URL = "https://api.themoviedb.org/3"
-TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"  # poster image size
-
+from routes.favorites import favorites_bp
+from db import is_favorite
+from tmdb import TMDB_API_KEY, get_movie_details, search_movies
 
 def create_app():
     app = Flask(__name__)
+    app.secret_key = os.getenv("SECRET_KEY")
+
+    # Register Blueprint
+    app.register_blueprint(favorites_bp)
 
     # 1. Login
     @app.route("/", methods=["GET"])
@@ -41,72 +42,18 @@ def create_app():
         if not TMDB_API_KEY:
             abort(500, "TMDB_API_KEY is not set. Please configure it in your environment.")
 
+        user_id = 8
         movie = get_movie_details(movie_id)
-        return render_template("movie_detail.html", movie=movie)
+        fav_status = is_favorite(user_id, movie_id)
+
+        return render_template("movie_detail.html", movie=movie, is_fav=fav_status)
 
     # 4. user account
     @app.route("/account", methods=["GET"])
     def account():
         return render_template("account.html")
-
-    # 5. favourites list
-    @app.route("/favourites", methods=["GET"])
-    def favourites():
-        return render_template("favourites.html")
-
+    
     return app
-
-
-def search_movies(query: str, year: str | None = None):
-    """Call TMDb search API and return a simplified list of movies."""
-    params = {
-        "api_key": TMDB_API_KEY,
-        "query": query,
-        "include_adult": False,
-        "language": "en-US",
-    }
-    if year:
-        params["year"] = year
-
-    resp = requests.get(f"{TMDB_BASE_URL}/search/movie", params=params, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-
-    movies: list[dict] = []
-    for m in data.get("results", []):
-        movies.append({
-            "id": m["id"],
-            "title": m["title"],
-            "rating": m.get("vote_average"),
-            "vote_count": m.get("vote_count"),
-            "poster_url": TMDB_IMG_BASE + m["poster_path"] if m.get("poster_path") else None,
-            "overview": m.get("overview"),
-            "release_year": (m.get("release_date") or "")[:4],
-        })
-    return movies
-
-
-def get_movie_details(movie_id: int):
-    """Get detailed information for a single movie by id."""
-    params = {
-        "api_key": TMDB_API_KEY,
-        "language": "en-US",
-    }
-    resp = requests.get(f"{TMDB_BASE_URL}/movie/{movie_id}", params=params, timeout=10)
-    resp.raise_for_status()
-    m = resp.json()
-
-    return {
-        "id": m["id"],
-        "title": m["title"],
-        "rating": m.get("vote_average"),
-        "vote_count": m.get("vote_count"),
-        "poster_url": TMDB_IMG_BASE + m["poster_path"] if m.get("poster_path") else None,
-        "overview": m.get("overview"),
-        "release_year": (m.get("release_date") or "")[:4],
-        "genres": [g["name"] for g in m.get("genres", [])],
-        "runtime": m.get("runtime"),
-    }
 
 
 if __name__ == "__main__":

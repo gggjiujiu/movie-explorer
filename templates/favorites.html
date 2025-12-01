@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='favorites.css') }}">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <h2>Favorite Movies</h2>
+
+  {% if movies %}
+    <div class="fav-list">
+
+      {% for m in movies %}
+        <div class="fav-card">
+
+          <div class="fav-left">
+
+            <!-- ⭐ 圖片黑框（不是圖片本身） -->
+            <div class="fav-poster-frame">
+              {% if m.poster_url %}
+                <img src="{{ m.poster_url }}" alt="{{ m.title }}">
+              {% else %}
+                <span>No Image</span>
+              {% endif %}
+            </div>
+
+            <div class="fav-info">
+              <div class="fav-rank">#{{ loop.index }}</div>
+
+              <a class="fav-title" href="{{ url_for('movie_detail', movie_id=m.id) }}">
+                {{ m.title }}
+              </a>
+
+              <div class="fav-year">{{ m.release_year }}</div>
+
+              <div class="fav-rating-row">
+                <span class="fav-star">★</span>
+                <span>Rate {{ m.rating }}</span>
+                {% if m.vote_count %}
+                  <span>({{ m.vote_count }})</span>
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+
+          <form action="{{ url_for('favorites.delete_favorite', movie_id=m.id) }}" 
+          method="POST"
+          onsubmit="return confirm('Are you sure you want to remove this movie from your favorite list?');">
+            <button class="fav-remove-btn" type="submit">
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  fill="currentColor" 
+                  class="bi bi-trash" 
+                  viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+              </svg>
+            </button>
+          </form>
+
+        </div>
+      {% endfor %}
+
+    </div>
+
+  {% else %}
+    <p>You have no favorite movies.</p>
+  {% endif %}
+
+{% endblock %}

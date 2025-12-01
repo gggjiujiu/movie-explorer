@@ -1,9 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='favorites.css') }}">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <a href="{{ url_for('movie_search') }}">&larr; Back to search</a>
 
   <h2>{{ movie.title }}</h2>
+
+  <form action="{{ url_for('favorites.toggle_favorite', movie_id=movie.id) }}" method="POST" style="margin-bottom:1rem;">
+    {% if is_fav %}
+      <button class="fav-btn in-fav" type="submit">
+          ✓ In Favorite List
+      </button>
+    {% else %}
+      <button class="fav-btn add-fav" type="submit">
+          + Add to Favorite List
+      </button>
+    {% endif %}
+  </form>
 
   <div class="movie-detail-layout">
     <div class="poster">
