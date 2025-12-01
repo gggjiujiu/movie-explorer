@@ -60,7 +60,8 @@ def create_app():
 
         # Check if the email is already registered
         if User.query.filter_by(email=email).first():
-            return "Email already registered!", 400
+            flash("Email already registered! Please log in instead.")
+            return redirect(url_for('home'))
 
         # Automatically generate account name (email prefix + random suffix)
         base_account = email.split('@')[0]
@@ -81,6 +82,7 @@ def create_app():
 
         # Log in directly after successful registration
         session['user_id'] = new_user.id
+        flash("Account created successfully! Welcome.")
         return redirect(url_for('movie_search'))
 
     # Handle Login
@@ -95,7 +97,8 @@ def create_app():
             session['user_id'] = user.id
             return redirect(url_for('movie_search'))
         else:
-            return "Invalid email or password", 401
+            flash("Invalid email or password. Please try again.")
+            return redirect(url_for('home'))
 
     # Handle Logout
     @app.route("/logout")
@@ -335,4 +338,4 @@ def apply_filters(movie_list, genre_filter, rating_filter):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, host="127.0.0.1", port=8080)
+    app.run(debug=True, host="127.0.0.1", port=8000)
