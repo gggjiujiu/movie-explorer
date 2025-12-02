@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from flask import (
+    Blueprint, render_template, request, flash, redirect, url_for, session
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from db import (
@@ -10,6 +12,7 @@ from db import (
 
 # Define Blueprint
 account_bp = Blueprint('account_bp', __name__)
+
 
 def get_current_user_id():
     return session.get("user_id")
@@ -24,11 +27,12 @@ def account_page():
         flash("Please login first.", "warning")
         return redirect(url_for("home"))
 
+    # Initialize user_info to prevent errors if the DB query fails later
     user_info = None
 
     try:
         user = get_user(user_id)
-        
+
         if not user:
             flash("User not found.", "danger")
             return redirect(url_for("home"))
@@ -43,12 +47,14 @@ def account_page():
                 if not new_email:
                     flash("Email cannot be empty.", "danger")
                 elif email_exists(new_email, user_id):
-                    flash("This email is already registered by another user.", "danger")
+                    flash(
+                        "This email is already registered by another user.",
+                        "danger"
+                        )
 
                 else:
                     update_user_email(user, new_email)
                     flash("Profile updated successfully!", "success")
-            
 
             #  Case B: Change Password
             elif action == "change_password":
@@ -56,7 +62,7 @@ def account_page():
                 new_password = request.form.get("new_password")
                 confirm_password = request.form.get("confirm_password")
 
-                # 1. Check if the two new passwords match
+                # Check if the two new passwords match
                 if new_password != confirm_password:
                     flash("New passwords do not match!", "danger")
                 else:

@@ -20,6 +20,8 @@ url = URL.create(
 engine = create_engine(url)
 
 # ======================== Favorite List Helpers ========================
+
+
 # search for user's favorite movie list
 def get_favorite_movie_ids(user_id: int):
     with Session(engine) as session:
@@ -39,6 +41,7 @@ def is_favorite(user_id: int, movie_id: int) -> bool:
         )
         return session.execute(stmt).first() is not None
 
+
 # delete a movie from the favorite list
 def delete_favorite_movie(user_id: int, movie_id: int) -> int:
     with Session(engine) as session:
@@ -50,7 +53,8 @@ def delete_favorite_movie(user_id: int, movie_id: int) -> int:
         session.commit()
 
         # Return number of rows deleted.
-        return rows_deleted 
+        return rows_deleted
+
 
 # add a movie to the favorite list
 def add_favorite_movie(user_id: int, movie_id: int):
@@ -64,13 +68,16 @@ def add_favorite_movie(user_id: int, movie_id: int):
         return False  # failed
 
 # ======================== User Helpers ========================
+
+
 # get user data
 def get_user(user_id: int):
     with Session(engine) as db:
         stmt = select(User).where(User.id == user_id)
         return db.execute(stmt).scalar_one_or_none()
 
-# check if email is already used.
+
+# check if email is already used by others
 def email_exists(new_email, user_id):
     with Session(engine) as db:
         stmt = select(User).where(
@@ -79,6 +86,7 @@ def email_exists(new_email, user_id):
         )
         return db.execute(stmt).first() is not None
 
+
 # update email
 def update_user_email(user: User, new_email: str):
     with Session(engine) as db:
@@ -86,10 +94,10 @@ def update_user_email(user: User, new_email: str):
         db.merge(user)
         db.commit()
 
+
 # update password
 def update_user_password(user: User, hashed_password: str):
     with Session(engine) as db:
         user.password = hashed_password
         db.merge(user)
         db.commit()
-

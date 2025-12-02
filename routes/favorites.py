@@ -10,8 +10,10 @@ from tmdb import get_movie_details
 
 favorites_bp = Blueprint("favorites", __name__, url_prefix="/favorites")
 
+
 def get_current_user_id():
     return session.get("user_id")
+
 
 # GET /favorites
 @favorites_bp.route("/", methods=["GET"])
@@ -55,7 +57,7 @@ def toggle_favorite(movie_id):
             flash("Failed to remove movie.", "error")
 
         return redirect(url_for("movie_detail", movie_id=movie_id))
-    
+
     # Case 2: not in favorites → add it
     success = add_favorite_movie(user_id, movie_id)
 
