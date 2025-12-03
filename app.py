@@ -15,7 +15,7 @@ def create_app():
     app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_secret_key")
 
     # Database set up
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///local_dev.db")
     if (app.config['SQLALCHEMY_DATABASE_URI'] and
             app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://")):
         app.config['SQLALCHEMY_DATABASE_URI'] = (
