@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import (Blueprint, render_template,
+                   request, redirect, url_for, session, flash)
 from models.user import User
 from db import db
 import random

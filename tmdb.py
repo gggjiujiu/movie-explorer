@@ -11,6 +11,7 @@ TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"
 
 # --- Helper Functions ---
 
+
 def search_movies(query: str, year: str | None = None):
     params = {
         "api_key": TMDB_API_KEY,

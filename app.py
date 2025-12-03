@@ -8,6 +8,7 @@ from routes.movies import movies_bp
 
 load_dotenv()
 
+
 def create_app():
     app = Flask(__name__)
     # Set Secret Key for Session
@@ -33,10 +34,10 @@ def create_app():
 
     # Automatically create tables (if they don't exist)
     with app.app_context():
-        from models.user import User
         db.create_all()
 
     return app
+
 
 if __name__ == "__main__":
     app = create_app()

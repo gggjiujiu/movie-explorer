@@ -1,7 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort
-from tmdb import search_movies, get_popular_movies, get_movie_genres, get_movie_details, apply_filters, TMDB_API_KEY
+from flask import (Blueprint, render_template,
+                   request, redirect, url_for, session, flash, abort)
+from tmdb import (search_movies, get_popular_movies, get_movie_genres,
+                  get_movie_details, apply_filters, TMDB_API_KEY)
 
 movies_bp = Blueprint('movies', __name__)
+
 
 @movies_bp.route("/movies", methods=["GET"])
 def movie_search():

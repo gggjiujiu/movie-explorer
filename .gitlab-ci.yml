@@ -8,7 +8,7 @@ python-formatting:
   before_script:
     - pip install flake8
   script:
-    - flake8 app.py
+    - flake8 .
 
 deploy-to-tsuru:
   stage: deploy
