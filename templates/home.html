@@ -1,88 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-    /* 1. Global background adjustment */
-    body {
-        background-color: #fff; /* Pure white background */
-    }
-
-    /* 2. Title box style */
-    .title-box {
-        border: 3px solid black;
-        background-color: white;
-        padding: 10px 40px;
-        display: inline-block;
-        margin-bottom: 30px;
-        font-weight: bold;
-        font-size: 2rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    /* 3. Main card style */
-    .auth-card {
-        width: 100%;
-        max-width: 700px;
-        border: 2px solid black;
-        border-radius: 0;
-        overflow: hidden;
-        background-color: #E5E5E5;
-    }
-
-    /* 4. Top Tab button style */
-    .auth-tab {
-        cursor: pointer;
-        padding: 20px 0;
-        font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
-        transition: all 0.3s ease;
-        border-bottom: 2px solid black;
-    }
-
-    /* Active state */
-    .tab-active {
-        background-color: #E5E5E5;
-        color: black;
-    }
-
-    /* Inactive state */
-    .tab-inactive {
-        background-color: #D1D1D1;
-        color: #555;
-    }
-
-    /* 5. Input field style */
-    .custom-input {
-        background-color: #F0F0F0 !important;
-        border: none !important;
-        border-radius: 5px;
-        padding: 12px;
-        margin-bottom: 15px;
-    }
-
-    .form-label {
-        font-weight: bold;
-        font-size: 1.1rem;
-        margin-bottom: 5px;
-    }
-
-    /* 6. Button style */
-    .btn-custom {
-        background-color: #D1D1D1;
-        border: none;
-        color: black;
-        font-size: 1.2rem;
-        padding: 10px 40px;
-        border-radius: 50px; /* 圆角胶囊形状 */
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .btn-custom:hover {
-        background-color: #bbb;
-        color: black;
-    }
-</style>
 
 <div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 85vh;">
 
@@ -146,7 +64,18 @@
 
         </div>
     </div>
-</div>
+
+    <div class="text-center pb-4 pt-3">
+            <p style="font-size: 1.1rem;">
+                Not ready to join?
+                <a href="{{ url_for('movies.movie_search') }}">
+                    Continue as Guest &rarr;
+                </a>
+            </p>
+        </div>
+
+    </div>
+
 
 <script>
     function switchTab(tab) {

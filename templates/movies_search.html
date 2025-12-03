@@ -3,7 +3,7 @@
 
   <h2>Search Movies</h2>
 
-  <form class="search-bar" action="{{ url_for('movie_search') }}" method="get">
+  <form class="search-bar" action="{{ url_for('movies.movie_search') }}" method="get">
     <input
       type="text"
       name="q"
@@ -54,7 +54,7 @@
   {% if movies %}
     <div class="movie-grid">
       {% for m in movies %}
-        <a class="movie-card" href="{{ url_for('movie_detail', movie_id=m.id) }}">
+        <a class="movie-card" href="{{ url_for('movies.movie_detail', movie_id=m.id) }}">
           {% if m.poster_url %}
             <img src="{{ m.poster_url }}" alt="{{ m.title }} poster">
           {% else %}
@@ -82,7 +82,7 @@
 
     <div class="movie-grid">
       {% for m in recommended_movies %}
-        <a class="movie-card" href="{{ url_for('movie_detail', movie_id=m.id) }}">
+        <a class="movie-card" href="{{ url_for('movies.movie_detail', movie_id=m.id) }}">
           {% if m.poster_url %}
             <img src="{{ m.poster_url }}" alt="{{ m.title }} poster">
           {% else %}
