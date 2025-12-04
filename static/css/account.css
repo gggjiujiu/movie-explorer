@@ -174,20 +174,6 @@
     box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
 }
 
-/* Alert Message Styling */
-.alert {
-    padding: 15px 20px;
-    margin-bottom: 25px;
-    border-radius: 8px;
-    border-left: 5px solid;
-}
-.alert-danger {
-    background-color: #fff5f5; color: #c53030; border-color: #c53030;
-}
-.alert-success {
-    background-color: #f0fff4; color: #2f855a; border-color: #2f855a;
-}
-
 /* Keyframes for Slide Up Animation */
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(15px); }

@@ -11,14 +11,20 @@ from tmdb import get_movie_details
 favorites_bp = Blueprint("favorites", __name__, url_prefix="/favorites")
 
 
-def get_current_user_id():
-    return session.get("user_id")
+def require_login():
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "warning")
+        return None
+    return user_id
 
 
 # GET /favorites
 @favorites_bp.route("/", methods=["GET"])
 def favorites():
-    user_id = get_current_user_id()
+    user_id = require_login()
+    if not user_id:
+        return redirect(url_for("home"))
     movie_ids = get_favorite_movie_ids(user_id)
 
     favorite_movies = []
@@ -31,7 +37,9 @@ def favorites():
 # POST /favorites/delete/<movie_id>
 @favorites_bp.route("/delete/<int:movie_id>", methods=["POST"])
 def delete_favorite(movie_id):
-    user_id = get_current_user_id()
+    user_id = require_login()
+    if not user_id:
+        return redirect(url_for("home"))
 
     rows_deleted = delete_favorite_movie(user_id, movie_id)
 
@@ -46,7 +54,9 @@ def delete_favorite(movie_id):
 # POST /favorites/toggle/<movie_id>
 @favorites_bp.route("/toggle/<int:movie_id>", methods=["POST"])
 def toggle_favorite(movie_id):
-    user_id = get_current_user_id()
+    user_id = require_login()
+    if not user_id:
+        return redirect(url_for("home"))
 
     # Case 1: already in favorites → remove it
     if is_favorite(user_id, movie_id):

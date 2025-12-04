@@ -3,6 +3,7 @@
 # Downloaded and cached files for Python packages
 venv
 __pycache__
+.pytest_cache
 *.pyc
 .venv
 # Local editor configuration files
