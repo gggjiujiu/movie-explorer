@@ -22,10 +22,10 @@ def get_current_user_id():
 def account_page():
     user_id = get_current_user_id()
 
-    # Access Control: Redirect to home if user is not logged in
+    # Authentication check: Redirect guests to the login page.
     if not user_id:
-        flash("Please login first.", "warning")
-        return redirect(url_for("home"))
+        flash("Please log in first.", "warning")
+        return redirect(url_for("home")) # return redirect(url_for("auth.home"))
 
     # Initialize user_info to prevent errors if the DB query fails later
     user_info = None
