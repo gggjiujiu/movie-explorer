@@ -143,25 +143,3 @@ def get_movie_genres():
     _genres_cache = data.get("genres", [])
     return _genres_cache
 
-
-def apply_filters(movie_list, genre_filter, rating_filter):
-    filtered = []
-
-    for m in movie_list:
-        # Genre filter
-        if genre_filter is not None:
-            genre_ids = m.get("genre_ids", [])
-            if genre_filter not in genre_ids:
-                continue
-
-        # Rating filter
-        if rating_filter is not None:
-            r = m.get("rating")
-            if r is None:
-                r = 0.0
-            if r < rating_filter:
-                continue
-
-        filtered.append(m)
-
-    return filtered

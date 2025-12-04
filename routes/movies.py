@@ -1,7 +1,7 @@
 from flask import (Blueprint, render_template,
-                   request, redirect, url_for, session, flash, abort)
+                   request, session, abort)
 from tmdb import (search_movies, get_popular_movies, get_movie_genres,
-                  get_movie_details, apply_filters, TMDB_API_KEY)
+                  get_movie_details, TMDB_API_KEY)
 from db import is_favorite
 
 movies_bp = Blueprint('movies', __name__)
@@ -62,3 +62,25 @@ def movie_detail(movie_id: int):
 
     return render_template("movie_detail.html", movie=movie, is_fav=is_fav)
 
+
+def apply_filters(movie_list, genre_filter, rating_filter):
+    filtered = []
+
+    for m in movie_list:
+        # Genre filter
+        if genre_filter is not None:
+            genre_ids = m.get("genre_ids", [])
+            if genre_filter not in genre_ids:
+                continue
+
+        # Rating filter
+        if rating_filter is not None:
+            r = m.get("rating")
+            if r is None:
+                r = 0.0
+            if r < rating_filter:
+                continue
+
+        filtered.append(m)
+
+    return filtered
