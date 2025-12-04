@@ -19,6 +19,32 @@ url = URL.create(
 
 engine = create_engine(url)
 
+# ======================== Auth / User Query Helpers ========================
+
+def get_user_by_email(email: str):
+    """Return the User object if email exists, else None."""
+    with Session(engine) as db:
+        stmt = select(User).where(User.email == email)
+        return db.execute(stmt).scalar_one_or_none()
+
+
+def create_user(firstname: str, lastname: str, email: str, account: str, password_hash: str):
+    """Insert new user into DB and return the created user."""
+    new_user = User(
+        firstname=firstname,
+        lastname=lastname,
+        email=email,
+        account=account,
+        password=password_hash
+    )
+
+    with Session(engine) as db:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)   # get generated id
+        return new_user
+
+
 # ======================== Favorite List Helpers ========================
 
 

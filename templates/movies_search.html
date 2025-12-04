@@ -3,13 +3,12 @@
 
   <h2>Search Movies</h2>
 
-  <form class="search-bar" action="{{ url_for('movie_search') }}" method="get">
+  <form class="search-bar" action="{{ url_for('movies.movie_search') }}" method="get">
     <input
       type="text"
       name="q"
       placeholder="Search by title..."
       value="{{ q or '' }}"
-      required
     >
     <input
       type="text"
@@ -18,15 +17,28 @@
       value="{{ year or '' }}"
       style="max-width: 80px;"
     >
-    <button type="submit">🔍</button>
+    <!-- Genre filter -->
+    <select name="genre_id">
+      <option value="">All genres</option>
+      {% for g in genres %}
+        <option value="{{ g.id }}"
+          {% if selected_genre and selected_genre|int == g.id %}selected{% endif %}>
+          {{ g.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <!-- Rating filter -->
+    <select name="min_rating">
+      <option value="">Any rating</option>
+      <option value="5" {% if selected_rating == '5' %}selected{% endif %}>>= 5.0</option>
+      <option value="7" {% if selected_rating == '7' %}selected{% endif %}>>= 7.0</option>
+      <option value="8" {% if selected_rating == '8' %}selected{% endif %}>>= 8.0</option>
+    </select>
+
+      <button type="submit">🔍</button>
   </form>
 
-  <!-- Filter buttons (UI only for now) -->
-  <div class="filters">
-    <button type="button">Genre</button>
-    <button type="button">Year</button>
-    <button type="button">Rating</button>
-  </div>
 
   {% if q %}
     <p class="small">
@@ -42,7 +54,7 @@
   {% if movies %}
     <div class="movie-grid">
       {% for m in movies %}
-        <a class="movie-card" href="{{ url_for('movie_detail', movie_id=m.id) }}">
+        <a class="movie-card" href="{{ url_for('movies.movie_detail', movie_id=m.id) }}">
           {% if m.poster_url %}
             <img src="{{ m.poster_url }}" alt="{{ m.title }} poster">
           {% else %}
@@ -65,4 +77,32 @@
     <p>No results found.</p>
   {% endif %}
 
+  {% if not q and recommended_movies %}
+    <h2>Popular movies</h2>
+
+    <div class="movie-grid">
+      {% for m in recommended_movies %}
+        <a class="movie-card" href="{{ url_for('movies.movie_detail', movie_id=m.id) }}">
+          {% if m.poster_url %}
+            <img src="{{ m.poster_url }}" alt="{{ m.title }} poster">
+          {% else %}
+            <div class="placeholder">No image</div>
+          {% endif %}
+          <div class="info">
+            <h3>{{ m.title }}</h3>
+            <p class="meta">
+              ⭐ {{ "%.1f"|format(m.rating or 0) }}
+              {% if m.vote_count %} ({{ m.vote_count }} votes){% endif %}
+            </p>
+            <p class="meta">
+              {{ m.release_year }}
+            </p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+
 {% endblock %}
+

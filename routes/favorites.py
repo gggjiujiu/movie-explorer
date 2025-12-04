@@ -24,7 +24,7 @@ def require_login():
 def favorites():
     user_id = require_login()
     if not user_id:
-        return redirect(url_for("home"))
+        return redirect(url_for("auth.home"))
     movie_ids = get_favorite_movie_ids(user_id)
 
     favorite_movies = []
@@ -39,7 +39,7 @@ def favorites():
 def delete_favorite(movie_id):
     user_id = require_login()
     if not user_id:
-        return redirect(url_for("home"))
+        return redirect(url_for("auth.home"))
 
     rows_deleted = delete_favorite_movie(user_id, movie_id)
 
@@ -56,7 +56,7 @@ def delete_favorite(movie_id):
 def toggle_favorite(movie_id):
     user_id = require_login()
     if not user_id:
-        return redirect(url_for("home"))
+        return redirect(url_for("auth.home"))
 
     # Case 1: already in favorites → remove it
     if is_favorite(user_id, movie_id):
@@ -66,7 +66,7 @@ def toggle_favorite(movie_id):
         else:
             flash("Failed to remove movie.", "error")
 
-        return redirect(url_for("movie_detail", movie_id=movie_id))
+        return redirect(url_for("movies.movie_detail", movie_id=movie_id))
 
     # Case 2: not in favorites → add it
     success = add_favorite_movie(user_id, movie_id)
@@ -76,4 +76,4 @@ def toggle_favorite(movie_id):
     else:
         flash("Failed to add movie.", "error")
 
-    return redirect(url_for("movie_detail", movie_id=movie_id))
+    return redirect(url_for("movies.movie_detail", movie_id=movie_id))

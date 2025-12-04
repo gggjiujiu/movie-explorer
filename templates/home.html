@@ -1,21 +1,109 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
-  
-  <div class="container" style="margin-top: 20px;">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
+    <div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 85vh;">
 
-  <h2>Welcome</h2>
-  <p>Click the button below to log in and start searching for movies.</p>
+        <div class="title-box">
+            Movie Explorer
+        </div>
 
-  <a href="{{ url_for('movie_search') }}" class="btn-primary">Login</a>
+        <div class="auth-card">
+            <div class="row g-0">
+                <div class="col-6 auth-tab tab-active" id="tabLogin" onclick="switchTab('login')">
+                    Log In
+                </div>
+                <div class="col-6 auth-tab tab-inactive" id="tabSignup" onclick="switchTab('signup')">
+                    Sign Up
+                </div>
+            </div>
+
+            <div class="p-5">
+
+                <div id="loginForm">
+                    <form action="/login" method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Email:</label>
+                            <input type="email" name="email" class="form-control custom-input" required>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label">Password:</label>
+                            <input type="password" name="password" class="form-control custom-input" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-custom">Log In</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="signupForm" style="display: none;">
+                    <form action="/signup" method="POST">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">First Name:</label>
+                                <input type="text" name="firstname" class="form-control custom-input" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Last Name:</label>
+                                <input type="text" name="lastname" class="form-control custom-input" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email:</label>
+                            <input type="email" name="email" class="form-control custom-input" required>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label">Confirm Password:</label>
+                            <input type="password" name="password" class="form-control custom-input" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-custom">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-center pb-4 pt-3">
+                <p style="font-size: 1.1rem;">
+                    Not ready to join?
+                    <a href="{{ url_for('movies.movie_search') }}">
+                        Continue as Guest &rarr;
+                    </a>
+                </p>
+        </div>
+
+    </div>
+
+
+<script>
+    function switchTab(tab) {
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const tabLogin = document.getElementById('tabLogin');
+        const tabSignup = document.getElementById('tabSignup');
+
+        if (tab === 'login') {
+            // Show Login
+            loginForm.style.display = 'block';
+            signupForm.style.display = 'none';
+            // Switch Tab styles
+            tabLogin.classList.add('tab-active');
+            tabLogin.classList.remove('tab-inactive');
+            tabSignup.classList.add('tab-inactive');
+            tabSignup.classList.remove('tab-active');
+        } else {
+            // Show Sign up
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            // Switch Tab styles
+            tabSignup.classList.add('tab-active');
+            tabSignup.classList.remove('tab-inactive');
+            tabLogin.classList.add('tab-inactive');
+            tabLogin.classList.remove('tab-active');
+        }
+    }
+</script>
 
 {% endblock %}

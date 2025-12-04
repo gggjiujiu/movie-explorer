@@ -25,7 +25,7 @@ def account_page():
     # Authentication check: Redirect guests to the login page.
     if not user_id:
         flash("Please log in first.", "warning")
-        return redirect(url_for("home"))
+        return redirect(url_for("auth.home"))
 
     # Initialize user_info to prevent errors if the DB query fails later
     user_info = None
@@ -35,7 +35,7 @@ def account_page():
 
         if not user:
             flash("User not found.", "danger")
-            return redirect(url_for("home"))
+            return redirect(url_for("auth.home"))
 
         if request.method == "POST":
             action = request.form.get("action")
