@@ -6,15 +6,8 @@
 
     <div class="account-container">
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
         <h2 class="page-title">Account Details</h2>
+    
 
         <div class="tabs-nav">
             <button class="tab-btn active" onclick="openTab(event, 'personal-details')">Personal Details</button>

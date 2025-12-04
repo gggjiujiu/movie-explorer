@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <title>Movie Explorer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    
+    <!-- Global styles (flash messages, shared components) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    
     <style>
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -204,6 +207,17 @@
     </header>
 
     <main>
+        <!-- Global Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+        
         {% block content %}{% endblock %}
     </main>
 </body>
