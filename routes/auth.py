@@ -40,7 +40,7 @@ def signup():
     password = request.form.get("password")
 
     # Check if the email is already registered
-    if User.query.filter_by(email=email).first():
+    if db.get_user_by_email(email):
         flash("Email already registered! Please log in instead.")
         return redirect(url_for('auth.home'))
 
