@@ -29,7 +29,11 @@ def get_user_by_email(email: str):
         return db.execute(stmt).scalar_one_or_none()
 
 
-def create_user(firstname: str, lastname: str, email: str, account: str, password_hash: str):
+def create_user(firstname: str,
+                lastname: str,
+                email: str,
+                account: str,
+                password_hash: str):
     """Insert new user into DB and return the created user."""
     new_user = User(
         firstname=firstname,

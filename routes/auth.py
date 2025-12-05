@@ -28,7 +28,7 @@ def login():
         session['user_id'] = user.id
         return redirect(url_for('movies.movie_search'))
     else:
-        flash("Invalid email or password. Please try again.")
+        flash("Invalid email or password. Please try again.", "error")
         return redirect(url_for('auth.home'))
 
 
@@ -41,7 +41,7 @@ def signup():
 
     # Check if the email is already registered
     if db.get_user_by_email(email):
-        flash("Email already registered! Please log in instead.")
+        flash("Email already registered! Please log in instead.", "warning")
         return redirect(url_for('auth.home'))
 
     # Automatically generate account name (email prefix + random suffix)
@@ -63,12 +63,12 @@ def signup():
 
     # Log in directly after successful registration
     session['user_id'] = new_user.id
-    flash("Account created successfully! Welcome.")
+    flash("Account created successfully! Welcome.", "success")
     return redirect(url_for('movies.movie_search'))
 
 
 @auth_bp.route("/logout")
 def logout():
     session.clear()
-    flash("You have been logged out.")
+    flash("You have been logged out.", "success")
     return redirect(url_for('auth.home'))

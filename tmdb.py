@@ -7,9 +7,11 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"  # poster image size
 
+
 def require_tmdb_key():
     if not TMDB_API_KEY:
         abort(500, "TMDB_API_KEY is not set.")
+
 
 def search_movies(query: str, year: str | None = None):
     """Call TMDb search API and return a simplified list of movies."""

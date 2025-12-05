@@ -20,7 +20,6 @@ def favorites():
     user_id = require_login()
     if not user_id:
         return redirect(url_for("auth.home"))
-    
     movie_ids = db.get_favorite_movie_ids(user_id)
 
     favorite_movies = []

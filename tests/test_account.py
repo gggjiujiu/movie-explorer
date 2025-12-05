@@ -94,7 +94,10 @@ def test_update_email_success(logged_in_client, monkeypatch):
     """Test: Successful email update when new email is unique."""
 
     # 1. Mock email_exists to indicate the email is available
-    monkeypatch.setattr(account, "email_exists", lambda new_email, user_id: False)
+    monkeypatch.setattr(account,
+                        "email_exists",
+                        lambda new_email,
+                        user_id: False)
 
     # Track whether update_user_email is called
     update_called = {"status": False, "new_email": None}
@@ -150,7 +153,8 @@ def test_update_email_already_registered(logged_in_client, monkeypatch):
         follow_redirects=True,
     )
 
-    assert b"This email is already registered by another user." in response.data
+    assert (b"This email is already registered by another user."
+            in response.data)
 
 
 # ==========================================
@@ -206,7 +210,9 @@ def test_change_password_success(logged_in_client, monkeypatch):
         update_called["hashed_pw"] = hashed_password
 
     # Proper module-level monkeypatch
-    monkeypatch.setattr(account, "update_user_password", mock_update_user_password)
+    monkeypatch.setattr(account,
+                        "update_user_password",
+                        mock_update_user_password)
 
     NEW_PASSWORD = "new5678"
 

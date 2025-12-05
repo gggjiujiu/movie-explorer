@@ -46,7 +46,9 @@ class DummyUser:
 
 def test_login_success(client, monkeypatch):
     """Test successful login sets session and redirects."""
-    monkeypatch.setattr(db, "get_user_by_email", lambda email: DummyUser(ok=True))
+    monkeypatch.setattr(db,
+                        "get_user_by_email",
+                        lambda email: DummyUser(ok=True))
 
     mock_tmdb(monkeypatch)
 
@@ -63,7 +65,9 @@ def test_login_success(client, monkeypatch):
 
 
 def test_login_failure_wrong_password(client, monkeypatch):
-    monkeypatch.setattr(db, "get_user_by_email", lambda email: DummyUser(ok=False))
+    monkeypatch.setattr(db,
+                        "get_user_by_email",
+                        lambda email: DummyUser(ok=False))
 
     mock_tmdb(monkeypatch)
 
@@ -129,7 +133,7 @@ def test_signup_success(client, monkeypatch):
 # Logout tests
 # ============================================
 def test_logout_clears_session(logged_in_client):
-    resp = logged_in_client.get("/logout", follow_redirects=True)
+    logged_in_client.get("/logout", follow_redirects=True)
 
     with logged_in_client.session_transaction() as sess:
         assert "user_id" not in sess
