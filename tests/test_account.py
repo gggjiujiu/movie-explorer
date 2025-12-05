@@ -1,230 +1,233 @@
 import pytest
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from app import create_app
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app import create_app
-from db import engine
-from models.users import User
 
-# ==========================================
-#  Test Fixture: Setup
-# ==========================================
+# --- Mock User Object ---
+# Simulates the User class from users.py,
+# implementing only the attributes and methods needed by account.py.
+class MockUser:
+    def __init__(self, id, email, password):
+        self.id = id
+        self.email = email
+        self.account = "test_account_123"
+        self.firstname = "Test"
+        self.lastname = "User"
+        # Stores the hashed password to simulate the database
+        self.password = generate_password_hash(password)
+        # Attribute used by account.py
+        self.fullname = f"{self.firstname} {self.lastname}"
+
+    def check_password(self, password_input):
+        # Simulates password verification logic
+        return check_password_hash(self.password, password_input)
+
+
+# Default user for testing
+TEST_USER_ID = 1
+TEST_USER_PASSWORD = '12345'
+TEST_USER = MockUser(TEST_USER_ID, "test@example.com", TEST_USER_PASSWORD)
+
+
+# --- Fixtures ---
 @pytest.fixture
-def client():
-    """
-    Setup a virtual test client for the Flask application.
-    Runs before each test function.
-    """
+def app():
     app = create_app()
-    app.config['TESTING'] = True  # Enable testing mode
-    app.config['WTF_CSRF_ENABLED'] = False # Disable CSRF for easier POST testing
-    
-    with app.test_client() as client:
-        yield client
+    app.config["TESTING"] = True
+    app.config["SECRET_KEY"] = "test"  # for session
+    # Disable CSRF for easier POST testing, in case it is enabled in app.py
+    app.config["WTF_CSRF_ENABLED"] = False
+    return app
+
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+
+# Client fixture with logged-in status and Mocking
+@pytest.fixture
+def logged_in_client(client, monkeypatch):
+    """Sets the client status to logged in and Mocks db.get_user function."""
+
+    # 1. Mock get_user: Ensures account.py always receives TEST_USER
+    def mock_get_user(user_id):
+        return TEST_USER if user_id == TEST_USER_ID else None
+
+    # Path to the get_user function used in account.py: routes.account.get_user
+    monkeypatch.setattr("routes.account.get_user", mock_get_user)
+
+    # 2. Set session to simulate login
+    with client.session_transaction() as sess:
+        sess['user_id'] = TEST_USER_ID
+
+    return client
+
 
 # ==========================================
 #  Test Case 1: Guest Mode
 # ==========================================
 def test_account_redirect_if_not_logged_in(client):
-    """Test: Accessing /account without login should redirect to login page."""
-    
-    # 1. Action: Simulate a GET request to /account
+    """Test: Guest access to /account should redirect to the login page."""
+
     response = client.get('/account')
 
-    # 2. Verify: Status code should be 302 (Redirect)
+    # Expect redirect (302) to the login page (auth.home)
     assert response.status_code == 302
+    assert response.headers['Location'].endswith('/')
+
 
 # ==========================================
 #  Test Case 2: Member Mode
 # ==========================================
-def test_account_page_loads_if_logged_in(client):
-    """Test: Accessing /account with a valid session should load the page."""
+def test_account_page_loads_if_logged_in(logged_in_client):
+    """Test: Accessing /account while logged in should load the page
+    successfully and display user info."""
 
-    # 1. Action: Manually set user_id in session to simulate login
-    with client.session_transaction() as sess:
-        sess['user_id'] = 1  # Assume user ID 1 exists
+    response = logged_in_client.get('/account')
 
-    # 2. Action: Send GET request
-    response = client.get('/account')
-
-    # 3. Verify: Status code should be 200 (OK)
     assert response.status_code == 200
-    
-    # 4. Verify: Check if "Account Details" text exists in response
     assert b"Account Details" in response.data
+    # Verify the user's name is correctly passed and rendered
+    assert TEST_USER.fullname.encode() in response.data
+
 
 # ==========================================
 #  Test Case 3: Update Email (Success)
 # ==========================================
-def test_update_email_success(client):
-    """Test: Updating email with valid unique data should succeed."""
-    
-    # 1. Simulate login
-    with client.session_transaction() as sess:
-        sess['user_id'] = 1
+def test_update_email_success(logged_in_client, monkeypatch):
+    """Test: Successful email update (email is unique)."""
 
-    # 2. Action: Send POST request with action='update_profile'
-    response = client.post('/account', data={
+    # 1. Mock email_exists function:
+    # Returns False (meaning the email is available)
+    monkeypatch.setattr(
+        "routes.account.email_exists",
+        lambda new_email, user_id: False
+    )
+
+    # 2. Mock update_user_email function: Track that it is called
+    update_called = {"status": False, "new_email": None}
+
+    def mock_update_user_email(user, new_email):
+        update_called["status"] = True
+        update_called["new_email"] = new_email
+        monkeypatch.setattr(
+            "routes.account.update_user_email",
+            mock_update_user_email
+        )
+
+    # 3. Send request
+    NEW_EMAIL = 'new_test_email@test.com'
+    response = logged_in_client.post('/account', data={
         'action': 'update_profile',
-        'email': 'new_test_email@test.com'
+        'email': NEW_EMAIL
     }, follow_redirects=True)
 
-    # 3. Verify: Check for success flash message
-    assert response.status_code == 200
-    assert b"Profile updated successfully" in response.data
+    # 4. Verify
+    assert update_called["status"]
+    assert update_called["new_email"] == NEW_EMAIL
+    assert b"Profile updated successfully!" in response.data
+
 
 # ==========================================
 #  Test Case 4: Update Email (Fail - Empty)
 # ==========================================
-def test_update_email_empty(client):
+def test_update_email_empty(logged_in_client):
     """Test: Submitting an empty email should show an error."""
-    
-    with client.session_transaction() as sess:
-        sess['user_id'] = 1
 
-    response = client.post('/account', data={
+    response = logged_in_client.post('/account', data={
         'action': 'update_profile',
         'email': ''  # Empty value
     }, follow_redirects=True)
 
-    assert response.status_code == 200
-    assert b"Email cannot be empty" in response.data
+    assert b"Email cannot be empty." in response.data
+
 
 # ==========================================
 #  Test Case 5: Update Email (Fail - Duplicate)
 # ==========================================
-def test_update_email_already_registered(client):
-    """Test: Updating to an email that belongs to another user should fail."""
-    
-    target_email = "duplicate_user@test.com"
+def test_update_email_already_registered(logged_in_client, monkeypatch):
+    """Test: Updating email already registered by another user should fail."""
 
-    # 1. Setup: Create a temporary dummy user (User 2) with the target email
-    # We use a DB session to insert this user directly
-    with Session(engine) as db_session:
-        # Check if user already exists to avoid errors
-        stmt = select(User).where(User.email == target_email)
-        existing = db_session.execute(stmt).scalar_one_or_none()
-        
-        if not existing:
-            user2 = User(
-                id=999, # Use a safe ID that likely doesn't exist
-                account="temp_user_999",
-                firstname="Temp",
-                lastname="User",
-                email=target_email,
-                password=generate_password_hash("1234")
-            )
-            db_session.add(user2)
-            db_session.commit()
+    # Mock email_exists function:
+    # Returns True (meaning the email is already taken)
+    monkeypatch.setattr(
+        "routes.account.email_exists",
+        lambda new_email, user_id: True
+    )
 
-    try:
-        # 2. Login as User 1
-        with client.session_transaction() as sess:
-            sess['user_id'] = 1
+    response = logged_in_client.post('/account', data={
+        'action': 'update_profile',
+        'email': 'duplicate_user@test.com'
+    }, follow_redirects=True)
 
-        # 3. Action: User 1 tries to change email to User 2's email
-        response = client.post('/account', data={
-            'action': 'update_profile',
-            'email': target_email
-        }, follow_redirects=True)
+    assert (
+        b"This email is already registered by another user."
+        in response.data
+    )
 
-        # 4. Verify: Error message should appear
-        assert response.status_code == 200
-        assert b"This email is already registered by another user" in response.data
-
-    finally:
-        # 5. Teardown: Delete the temporary user to clean up database
-        with Session(engine) as db_session:
-            stmt = select(User).where(User.email == target_email)
-            user_to_del = db_session.execute(stmt).scalar_one_or_none()
-            if user_to_del:
-                db_session.delete(user_to_del)
-                db_session.commit()
 
 # ==========================================
 #  Test Case 6: Change Password (Fail - Mismatch)
 # ==========================================
-def test_change_password_mismatch(client):
+def test_change_password_mismatch(logged_in_client):
     """Test: New password and confirm password do not match."""
-    
-    with client.session_transaction() as sess:
-        sess['user_id'] = 1
 
-    response = client.post('/account', data={
+    response = logged_in_client.post('/account', data={
         'action': 'change_password',
-        'current_password': '1234',
+        'current_password': TEST_USER_PASSWORD,
         'new_password': 'new123',
-        'confirm_password': 'wrong123' # Mismatch
+        'confirm_password': 'wrong123'  # Mismatch
     }, follow_redirects=True)
 
-    assert response.status_code == 200
-    assert b"New passwords do not match" in response.data
+    assert b"New passwords do not match!" in response.data
+
 
 # ==========================================
-#  Test Case 7: Change Password (Fail - Wrong Old Password)
+#  Test Case 7: Change Password (Fail - Wrong Current Password)
 # ==========================================
-def test_change_password_wrong_current(client):
-    """Test: Incorrect old password should prevent change."""
-    
-    with client.session_transaction() as sess:
-        sess['user_id'] = 1
+def test_change_password_wrong_current(logged_in_client):
+    """Test: Incorrect current password."""
 
-    response = client.post('/account', data={
+    response = logged_in_client.post('/account', data={
         'action': 'change_password',
-        'current_password': 'WRONG_PASSWORD', # Incorrect password
+        'current_password': 'WRONG_PASSWORD',  # Incorrect password
         'new_password': 'new123',
         'confirm_password': 'new123'
     }, follow_redirects=True)
 
-    assert response.status_code == 200
-    assert b"Incorrect current password" in response.data
+    assert b"Incorrect current password." in response.data
+
 
 # ==========================================
 #  Test Case 8: Change Password (Success)
 # ==========================================
-def test_change_password_success(client):
-    """Test: Changing password with correct old and new passwords should succeed and clean up."""
+def test_change_password_success(logged_in_client, monkeypatch):
+    """Test: Successful password change."""
 
-    # 1. Setup: Reset Password to known state ('12345')
-    # This ensures every test run starts with the correct initial password.
-    with Session(engine) as db_session:
-        user = db_session.get(User, 1)
-        # Check if password needs reset
-        if not check_password_hash(user.password, '12345'):
-            user.password = generate_password_hash('12345')
-            db_session.commit()
-            
-    try:
-        # 2a. Simulate login
-        with client.session_transaction() as sess:
-            sess['user_id'] = 1
+    # 1. Mock update_user_password function: Track that it is called
+    update_called = {"status": False, "hashed_pw": None}
 
-        # 2b. Action: Send POST request using the current password ('12345')
-        response = client.post('/account', data={
-            'action': 'change_password',
-            'current_password': '12345',      
-            'new_password': 'new5678',       
-            'confirm_password': 'new5678'    
-        }, follow_redirects=True)
+    def mock_update_user_password(user, hashed_password):
+        update_called["status"] = True
+        update_called["hashed_pw"] = hashed_password
+        monkeypatch.setattr(
+            "routes.account.update_user_password",
+            mock_update_user_password
+        )
 
-        # 3. Verify UI: Check for success message
-        assert response.status_code == 200
-        assert b"Password updated successfully" in response.data
+    NEW_PASSWORD = 'new5678'
 
-        # 4. Verify Database Persistence:
-        # Fetch User 1 again to verify the password was updated successfully.
-        with Session(engine) as db_session:
-            user = db_session.get(User, 1)
-            # Verification A: Check if the new password works against the stored hash
-            assert check_password_hash(user.password, 'new5678')
-            # Verification B: Check if the old password is now invalid (proving overwrite)
-            assert not check_password_hash(user.password, '12345')
+    # 2. Send request
+    response = logged_in_client.post('/account', data={
+        'action': 'change_password',
+        'current_password': TEST_USER_PASSWORD,
+        'new_password': NEW_PASSWORD,
+        'confirm_password': NEW_PASSWORD
+    }, follow_redirects=True)
 
-    finally:
-        # 5. Teardown: Reset the password back to '12345'
-        with Session(engine) as db_session:
-            user = db_session.get(User, 1)
-            user.password = generate_password_hash('12345')
-            db_session.merge(user)
-            db_session.commit()
+    # 3. Verify
+    assert b"Password updated successfully!" in response.data
+    assert update_called["status"]
+    # Check if the passed hash is correct
+    assert check_password_hash(update_called["hashed_pw"], NEW_PASSWORD)

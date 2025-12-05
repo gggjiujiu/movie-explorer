@@ -6,6 +6,7 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"  # poster image size
 
+
 def search_movies(query: str, year: str | None = None):
     """Call TMDb search API and return a simplified list of movies."""
     params = {
@@ -119,6 +120,7 @@ def get_movie_details(movie_id: int):
         "runtime": m.get("runtime"),
     }
 
+
 # to catch the genres list of TMDb for html
 _genres_cache = None
 
@@ -142,4 +144,3 @@ def get_movie_genres():
     data = resp.json()
     _genres_cache = data.get("genres", [])
     return _genres_cache
-

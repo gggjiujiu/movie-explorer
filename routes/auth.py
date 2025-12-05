@@ -5,7 +5,7 @@ import random
 from models.users import User
 import db
 
-# 定义蓝图
+# Define Blueprint
 auth_bp = Blueprint('auth', __name__)
 
 
@@ -53,8 +53,13 @@ def signup():
     temp_user.set_password(password)
     hashed_pw = temp_user.password
 
-    new_user = db.create_user(firstname, lastname, email, generated_account, hashed_pw)
-
+    new_user = db.create_user(
+        firstname,
+        lastname,
+        email,
+        generated_account,
+        hashed_pw
+    )
 
     # Log in directly after successful registration
     session['user_id'] = new_user.id

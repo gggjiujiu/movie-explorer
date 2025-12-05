@@ -55,10 +55,9 @@ def movie_detail(movie_id: int):
     movie = get_movie_details(movie_id)
     user_id = session.get("user_id")
     is_fav = False
-    
+
     if user_id:
         is_fav = is_favorite(user_id, movie_id)
-    
 
     return render_template("movie_detail.html", movie=movie, is_fav=is_fav)
 

@@ -1,13 +1,15 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
+from dotenv import load_dotenv
 from flask import Flask
 
 from routes.favorites import favorites_bp
 from routes.account import account_bp
 from routes.auth import auth_bp
 from routes.movies import movies_bp
+
+
+load_dotenv()
 
 
 def create_app():

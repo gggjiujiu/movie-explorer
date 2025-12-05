@@ -21,6 +21,7 @@ engine = create_engine(url)
 
 # ======================== Auth / User Query Helpers ========================
 
+
 def get_user_by_email(email: str):
     """Return the User object if email exists, else None."""
     with Session(engine) as db:
