@@ -1,11 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session
 
-from db import (
-    get_favorite_movie_ids,
-    is_favorite,
-    delete_favorite_movie,
-    add_favorite_movie
-)
+import db
 from tmdb import get_movie_details
 
 favorites_bp = Blueprint("favorites", __name__, url_prefix="/favorites")
@@ -25,7 +20,8 @@ def favorites():
     user_id = require_login()
     if not user_id:
         return redirect(url_for("auth.home"))
-    movie_ids = get_favorite_movie_ids(user_id)
+    
+    movie_ids = db.get_favorite_movie_ids(user_id)
 
     favorite_movies = []
     for mid in movie_ids:
@@ -41,7 +37,7 @@ def delete_favorite(movie_id):
     if not user_id:
         return redirect(url_for("auth.home"))
 
-    rows_deleted = delete_favorite_movie(user_id, movie_id)
+    rows_deleted = db.delete_favorite_movie(user_id, movie_id)
 
     if rows_deleted:
         flash("Movie removed from your favorite list!", "success")
@@ -59,8 +55,8 @@ def toggle_favorite(movie_id):
         return redirect(url_for("auth.home"))
 
     # Case 1: already in favorites → remove it
-    if is_favorite(user_id, movie_id):
-        rows = delete_favorite_movie(user_id, movie_id)
+    if db.is_favorite(user_id, movie_id):
+        rows = db.delete_favorite_movie(user_id, movie_id)
         if rows > 0:
             flash("Removed from your favorite list!", "success")
         else:
@@ -69,7 +65,7 @@ def toggle_favorite(movie_id):
         return redirect(url_for("movies.movie_detail", movie_id=movie_id))
 
     # Case 2: not in favorites → add it
-    success = add_favorite_movie(user_id, movie_id)
+    success = db.add_favorite_movie(user_id, movie_id)
 
     if success:
         flash("Added to your favorite list!", "success")

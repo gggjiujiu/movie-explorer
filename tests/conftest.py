@@ -1,36 +1,47 @@
-# import pytest
-# from app import create_app
-# from db import db
+import pytest
+from app import create_app
+import db
 
 
-# @pytest.fixture
-# def app():
-#     # 1. 创建测试专用的 App
-#     app = create_app()
-
-#     # 2. 配置测试环境 (使用内存数据库，不污染本地文件)
-#     app.config.update({
-#         "TESTING": True,
-#         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-#         "WTF_CSRF_ENABLED": False,  # 关闭 CSRF 方便测试 POST
-#         "SECRET_KEY": "test_secret_key"
-#     })
-
-#     # 3. 激活上下文并建表
-#     with app.app_context():
-#         db.create_all()
-#         yield app
-
-#         # 4. 测试结束后清理
-#         db.session.remove()
-#         db.drop_all()
+@pytest.fixture
+def app():
+    """Create Flask app configured for testing."""
+    app = create_app()
+    app.config.update(
+        TESTING=True,
+        WTF_CSRF_ENABLED=False,
+    )
+    return app
 
 
-# @pytest.fixture
-# def client(app):
-#     return app.test_client()
+@pytest.fixture
+def client(app):
+    """Flask test client."""
+    return app.test_client()
 
 
-# @pytest.fixture
-# def runner(app):
-#     return app.test_cli_runner()
+@pytest.fixture
+def logged_in_client(client):
+    """Test client with a logged-in user."""
+    with client.session_transaction() as sess:
+        sess["user_id"] = 1
+    return client
+
+
+# ============================================================
+# Prevent ANY real database access during tests
+# ============================================================
+@pytest.fixture(autouse=True)
+def disable_real_database(monkeypatch):
+    """Automatically mock db.engine and Session so no real DB is used."""
+
+    class FakeSession:
+        """A fake SQLAlchemy session that raises errors if used."""
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("DB access attempted during unit test")
+
+    # Mock engine (so create_engine never connects)
+    monkeypatch.setattr(db, "engine", None)
+
+    # Mock Session class (so Session(engine) cannot be created)
+    monkeypatch.setattr(db, "Session", FakeSession)

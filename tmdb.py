@@ -1,14 +1,20 @@
 import os
 import requests
 import random
+from flask import abort
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"  # poster image size
 
+def require_tmdb_key():
+    if not TMDB_API_KEY:
+        abort(500, "TMDB_API_KEY is not set.")
 
 def search_movies(query: str, year: str | None = None):
     """Call TMDb search API and return a simplified list of movies."""
+    require_tmdb_key()
+
     params = {
         "api_key": TMDB_API_KEY,
         "query": query,
@@ -45,8 +51,7 @@ def get_popular_movies(genre_id=None, min_rating=None, year=None, limit=20):
     Supports filtering by genre, rating, and year directly via the API.
     Includes random pagination to ensure the homepage content varies.
     """
-    if not TMDB_API_KEY:
-        return []
+    require_tmdb_key()
 
     # Use the 'discover' endpoint instead of 'popular' to enable filtering
     endpoint = f"{TMDB_BASE_URL}/discover/movie"
@@ -101,6 +106,8 @@ def get_popular_movies(genre_id=None, min_rating=None, year=None, limit=20):
 
 def get_movie_details(movie_id: int):
     """Get detailed information for a single movie by id."""
+    require_tmdb_key()
+
     params = {"api_key": TMDB_API_KEY, "language": "en-US"}
     resp = requests.get(
         f"{TMDB_BASE_URL}/movie/{movie_id}", params=params, timeout=10
@@ -126,12 +133,11 @@ _genres_cache = None
 
 
 def get_movie_genres():
+    require_tmdb_key()
+
     global _genres_cache
     if _genres_cache is not None:
         return _genres_cache
-
-    if not TMDB_API_KEY:
-        return []
 
     params = {
         "api_key": TMDB_API_KEY,

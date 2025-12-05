@@ -2,16 +2,13 @@ from flask import (Blueprint, render_template,
                    request, session, abort)
 from tmdb import (search_movies, get_popular_movies, get_movie_genres,
                   get_movie_details, TMDB_API_KEY)
-from db import is_favorite
+import db
 
 movies_bp = Blueprint('movies', __name__)
 
 
 @movies_bp.route("/movies", methods=["GET"])
 def movie_search():
-    if not TMDB_API_KEY:
-        abort(500, "TMDB_API_KEY is not set.")
-
     q = request.args.get("q", "").strip()
     year = request.args.get("year", "").strip()
     genre_id = request.args.get("genre_id", "").strip()
@@ -53,14 +50,14 @@ def movie_search():
 @movies_bp.route("/movies/<int:movie_id>", methods=["GET"])
 def movie_detail(movie_id: int):
     movie = get_movie_details(movie_id)
-    user_id = session.get("user_id")
-    is_fav = False
 
+    user_id = session.get("user_id")
     if user_id:
-        is_fav = is_favorite(user_id, movie_id)
+        is_fav = db.is_favorite(user_id, movie_id)
+    else:
+        is_fav = False
 
     return render_template("movie_detail.html", movie=movie, is_fav=is_fav)
-
 
 def apply_filters(movie_list, genre_filter, rating_filter):
     filtered = []
