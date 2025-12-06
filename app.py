@@ -29,6 +29,7 @@ def create_app():
     # -----------------------------
     @app.errorhandler(ExternalAPIError)
     def handle_tmdb_error(e):
+        app.logger.error(f"TMDB API error: {e}")
         return render_template("tmdb_error.html"), 503
 
     return app
