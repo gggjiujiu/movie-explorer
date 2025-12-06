@@ -1,12 +1,13 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, render_template
 
 from routes.favorites import favorites_bp
 from routes.account import account_bp
 from routes.auth import auth_bp
 from routes.movies import movies_bp
+from tmdb import ExternalAPIError
 
 
 load_dotenv()
@@ -22,6 +23,13 @@ def create_app():
     app.register_blueprint(account_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(movies_bp)
+
+    # -----------------------------
+    # TMDB API DOWN ERROR PAGE
+    # -----------------------------
+    @app.errorhandler(ExternalAPIError)
+    def handle_tmdb_error(e):
+        return render_template("tmdb_error.html"), 503
 
     return app
 

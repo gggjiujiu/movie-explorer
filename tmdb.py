@@ -8,6 +8,11 @@ TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342"  # poster image size
 
 
+class ExternalAPIError(Exception):
+    """Raised when TMDB API fails or is unreachable."""
+    pass
+
+
 def require_tmdb_key():
     if not TMDB_API_KEY:
         abort(500, "TMDB_API_KEY is not set.")
@@ -25,11 +30,16 @@ def search_movies(query: str, year: str | None = None):
     }
     if year:
         params["year"] = year
-    resp = requests.get(
-        f"{TMDB_BASE_URL}/search/movie", params=params, timeout=10
-    )
-    resp.raise_for_status()
-    data = resp.json()
+
+    try:
+        resp = requests.get(
+            f"{TMDB_BASE_URL}/search/movie", params=params, timeout=10
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        raise ExternalAPIError(f"TMDB search failed: {e}")
+
     movies = []
     for m in data.get("results", []):
         poster_path = m.get("poster_path")
@@ -79,16 +89,19 @@ def get_popular_movies(genre_id=None, min_rating=None, year=None, limit=20):
     if year:
         params["primary_release_year"] = year
 
-    resp = requests.get(endpoint, params=params, timeout=10)
-
-    # Fallback: If the random page is out of range,
-    # or if an error occurs, try fetching page 1.
-    if resp.status_code != 200 or not resp.json().get("results"):
-        params["page"] = 1
+    try:
         resp = requests.get(endpoint, params=params, timeout=10)
 
-    resp.raise_for_status()
-    data = resp.json()
+        # Fallback: If the random page is out of range,
+        # or if an error occurs, try fetching page 1.
+        if resp.status_code != 200 or not resp.json().get("results"):
+            params["page"] = 1
+            resp = requests.get(endpoint, params=params, timeout=10)
+
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        raise ExternalAPIError(f"TMDB popular movies failed: {e}")
 
     movies = []
     for m in data.get("results", [])[:limit]:
@@ -111,11 +124,16 @@ def get_movie_details(movie_id: int):
     require_tmdb_key()
 
     params = {"api_key": TMDB_API_KEY, "language": "en-US"}
-    resp = requests.get(
-        f"{TMDB_BASE_URL}/movie/{movie_id}", params=params, timeout=10
-    )
-    resp.raise_for_status()
-    m = resp.json()
+
+    try:
+        resp = requests.get(
+            f"{TMDB_BASE_URL}/movie/{movie_id}", params=params, timeout=10
+        )
+        resp.raise_for_status()
+        m = resp.json()
+    except Exception as e:
+        raise ExternalAPIError(f"TMDB movie details failed: {e}")
+
     poster_path = m.get("poster_path")
     return {
         "id": m["id"],
@@ -145,10 +163,14 @@ def get_movie_genres():
         "api_key": TMDB_API_KEY,
         "language": "en-US",
     }
-    resp = requests.get(
-        f"{TMDB_BASE_URL}/genre/movie/list", params=params, timeout=10
-    )
-    resp.raise_for_status()
-    data = resp.json()
+    try:
+        resp = requests.get(
+            f"{TMDB_BASE_URL}/genre/movie/list", params=params, timeout=10
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        raise ExternalAPIError(f"TMDB genre list failed: {e}")
+
     _genres_cache = data.get("genres", [])
     return _genres_cache
