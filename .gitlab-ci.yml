@@ -1,19 +1,28 @@
 stages:
   - format
+  - test
   - deploy
 
 python-formatting:
   stage: format
   image: python:3.12
   before_script:
-    - pip install -r requirements.txt
+    - pip install flake8
   script:
     - flake8 .
+
+unit-tests:
+  stage: test
+  image: python:3.12
+  needs: ["check-style"]
+  before_script:
+    - pip install -r requirements.txt
+  script:
     - pytest
-    
+
 deploy-to-tsuru:
   stage: deploy
-  needs: ["python-formatting"]
+  needs: ["unit-tests"]
   image: ubuntu:latest
   variables:
     TSURU_TARGET: https://impaas.uk
