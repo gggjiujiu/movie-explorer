@@ -14,7 +14,7 @@ python-formatting:
 unit-tests:
   stage: test
   image: python:3.12
-  needs: ["check-style"]
+  needs: ["python-formatting"]
   before_script:
     - pip install -r requirements.txt
   script:
