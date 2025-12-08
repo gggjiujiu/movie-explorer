@@ -9,11 +9,11 @@ from models.users import User
 # Create Postgres engine
 url = URL.create(
     drivername="postgresql+psycopg2",
-    username=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    host=os.getenv("DB_HOST"),
-    port=os.getenv("DB_PORT"),
-    database=os.getenv("DB_NAME"),
+    username=os.getenv("PGUSER"),
+    password=os.getenv("PGPASSWORD"),
+    host=os.getenv("PGHOST"),
+    port=os.getenv("PGPORT"),
+    database=os.getenv("PGDATABASE"),
     query={"client_encoding": "utf8"}
 )
 
